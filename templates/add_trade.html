@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block title %}Add Trade - Stock & Options Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>Add New Trade
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="tradeForm">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <!-- Symbol -->
+                        <div class="col-md-6">
+                            {{ form.symbol.label(class="form-label") }}
+                            {{ form.symbol(class="form-control", placeholder="e.g., AAPL") }}
+                            {% if form.symbol.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.symbol.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Trade Type -->
+                        <div class="col-md-6">
+                            {{ form.trade_type.label(class="form-label") }}
+                            {{ form.trade_type(class="form-select", id="tradeType") }}
+                            {% if form.trade_type.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.trade_type.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Action -->
+                        <div class="col-md-6">
+                            {{ form.action.label(class="form-label") }}
+                            {{ form.action(class="form-select") }}
+                            {% if form.action.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.action.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Quantity -->
+                        <div class="col-md-6">
+                            {{ form.quantity.label(class="form-label") }}
+                            {{ form.quantity(class="form-control", min="1", step="1") }}
+                            <small class="form-text text-muted" id="quantityHelp">Enter whole numbers only (e.g., 1, 10, 100)</small>
+                            {% if form.quantity.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.quantity.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Price -->
+                        <div class="col-md-6">
+                            <label class="form-label" id="priceLabel">Price per Share</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.price(class="form-control", step="0.01", min="0.01") }}
+                            </div>
+                            <small class="form-text text-muted" id="priceHelp">For stocks: price per share</small>
+                            {% if form.price.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.price.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Date -->
+                        <div class="col-md-6">
+                            {{ form.date.label(class="form-label") }}
+                            {{ form.date(class="form-control") }}
+                            {% if form.date.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.date.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Options-specific fields -->
+                    <div id="optionsFields" class="mt-4" style="display: none;">
+                        <hr>
+                        <h5 class="text-info mb-3">
+                            <i class="fas fa-cog me-2"></i>Options Details
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <!-- Strike Price -->
+                            <div class="col-md-6">
+                                {{ form.strike_price.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.strike_price(class="form-control", step="0.01", min="0.01") }}
+                                </div>
+                                {% if form.strike_price.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.strike_price.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Expiration Date -->
+                            <div class="col-md-6">
+                                {{ form.expiration_date.label(class="form-label") }}
+                                {{ form.expiration_date(class="form-control") }}
+                                {% if form.expiration_date.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.expiration_date.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fees and Position Status -->
+                    <div class="mt-4">
+                        <div class="row g-3">
+                            <!-- Fees -->
+                            <div class="col-md-6">
+                                {{ form.fees.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    {{ form.fees(class="form-control", step="0.01", min="0", placeholder="0.00") }}
+                                </div>
+                                <small class="form-text text-muted">Commission and other fees</small>
+                                {% if form.fees.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.fees.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Position Status -->
+                            <div class="col-md-6">
+                                <label class="form-label">Position Status</label>
+                                <div class="form-check mt-2">
+                                    {{ form.is_closed(class="form-check-input") }}
+                                    {{ form.is_closed.label(class="form-check-label") }}
+                                </div>
+                                
+                                <!-- Closing Details (shown only when position is closed) -->
+                                <div id="closingDetails" style="display: none;">
+                                    <div class="mt-2">
+                                        {{ form.closed_date.label(class="form-label") }}
+                                        {{ form.closed_date(class="form-control") }}
+                                        {% if form.closed_date.errors %}
+                                            <div class="text-danger small">
+                                                {% for error in form.closed_date.errors %}{{ error }}{% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="row g-2 mt-1">
+                                        <div class="col-6">
+                                            {{ form.close_price.label(class="form-label") }}
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                {{ form.close_price(class="form-control", step="0.01") }}
+                                            </div>
+                                            {% if form.close_price.errors %}
+                                                <div class="text-danger small">
+                                                    {% for error in form.close_price.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="col-6">
+                                            {{ form.close_quantity.label(class="form-label") }}
+                                            {{ form.close_quantity(class="form-control", min="1", step="1") }}
+                                            {% if form.close_quantity.errors %}
+                                                <div class="text-danger small">
+                                                    {% for error in form.close_quantity.errors %}{{ error }}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mt-4">
+                        {{ form.notes.label(class="form-label") }}
+                        {{ form.notes(class="form-control", rows="3", placeholder="Optional notes about this trade...") }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small">
+                                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="mt-4 d-flex gap-2">
+                        {{ form.submit(class="btn btn-success") }}
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Show/hide options fields based on trade type
+    function toggleOptionsFields() {
+        const tradeType = document.getElementById('tradeType').value;
+        const optionsFields = document.getElementById('optionsFields');
+        const priceLabel = document.getElementById('priceLabel');
+        const priceHelp = document.getElementById('priceHelp');
+        
+        if (tradeType === 'call' || tradeType === 'put') {
+            optionsFields.style.display = 'block';
+            priceLabel.textContent = 'Premium per Share';
+            priceHelp.textContent = 'For options: premium per share';
+            // Make options fields required
+            document.getElementById('strike_price').required = true;
+            document.getElementById('expiration_date').required = true;
+            
+            // Update quantity help text for options
+            const quantityHelp = document.getElementById('quantityHelp');
+            if (quantityHelp) {
+                quantityHelp.textContent = 'Number of contracts (automatically adjusted for sell-to-open)';
+            }
+        } else {
+            optionsFields.style.display = 'none';
+            priceLabel.textContent = 'Price per Share';
+            priceHelp.textContent = 'For stocks: price per share';
+            // Make options fields optional
+            document.getElementById('strike_price').required = false;
+            document.getElementById('expiration_date').required = false;
+            
+            // Reset quantity help text for stocks
+            const quantityHelp = document.getElementById('quantityHelp');
+            if (quantityHelp) {
+                quantityHelp.textContent = 'Enter whole numbers only (e.g., 1, 10, 100)';
+            }
+        }
+    }
+
+    // Toggle closing details based on position status
+    function toggleClosedDateField() {
+        const isClosedCheckbox = document.getElementById('is_closed');
+        const closingDetails = document.getElementById('closingDetails');
+        
+        if (isClosedCheckbox && closingDetails) {
+            if (isClosedCheckbox.checked) {
+                closingDetails.style.display = 'block';
+                document.getElementById('closed_date').required = true;
+                document.getElementById('close_price').required = true;
+                document.getElementById('close_quantity').required = true;
+            } else {
+                closingDetails.style.display = 'none';
+                document.getElementById('closed_date').required = false;
+                document.getElementById('close_price').required = false;
+                document.getElementById('close_quantity').required = false;
+                document.getElementById('closed_date').value = '';
+                document.getElementById('close_price').value = '';
+                document.getElementById('close_quantity').value = '';
+            }
+        }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleOptionsFields();
+        toggleClosedDateField();
+        
+        // Add event listener for trade type changes
+        document.getElementById('tradeType').addEventListener('change', toggleOptionsFields);
+        
+        // Add event listener for position status changes
+        const isClosedCheckbox = document.getElementById('is_closed');
+        if (isClosedCheckbox) {
+            isClosedCheckbox.addEventListener('change', toggleClosedDateField);
+        }
+    });
+</script>
+{% endblock %}

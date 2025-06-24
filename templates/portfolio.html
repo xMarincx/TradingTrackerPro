@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio - Stock & Options Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Portfolio Overview -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-wallet me-2"></i>Portfolio Overview
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Overall Statistics -->
+                    <div class="col-lg-6">
+                        <h5 class="text-primary mb-3">Overall Performance</h5>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-chart-line text-primary me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Total Trades</small>
+                                            <div class="fw-bold">{{ portfolio_stats.total_trades }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-dollar-sign text-info me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Total Invested</small>
+                                            <div class="fw-bold">${{ "%.2f"|format(portfolio_stats.total_invested) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-money-bill-wave text-warning me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Total Proceeds</small>
+                                            <div class="fw-bold">${{ "%.2f"|format(portfolio_stats.total_proceeds) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-chart-bar {% if portfolio_stats.net_pnl >= 0 %}text-success{% else %}text-danger{% endif %} me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Realized P&L</small>
+                                            <div class="fw-bold {% if portfolio_stats.realized_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                                ${{ "%.2f"|format(portfolio_stats.realized_pnl) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Options Statistics -->
+                    <div class="col-lg-6">
+                        <h5 class="text-info mb-3">Options Activity</h5>
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-cog text-success me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Options Trades</small>
+                                            <div class="fw-bold">{{ portfolio_stats.options_trades }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-stock text-primary me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Stock Trades</small>
+                                            <div class="fw-bold">{{ portfolio_stats.stock_trades }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-arrow-down text-danger me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Premium Paid</small>
+                                            <div class="fw-bold text-danger">${{ "%.2f"|format(portfolio_stats.options_premium_paid) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-arrow-up text-success me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Premium Received</small>
+                                            <div class="fw-bold text-success">${{ "%.2f"|format(portfolio_stats.options_premium_received) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-receipt text-warning me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Total Fees</small>
+                                            <div class="fw-bold text-warning">${{ "%.2f"|format(portfolio_stats.total_fees) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-lock-open text-success me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Open Positions</small>
+                                            <div class="fw-bold text-success">{{ portfolio_stats.open_positions }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-lock text-secondary me-2"></i>
+                                        <div>
+                                            <small class="text-muted">Closed Positions</small>
+                                            <div class="fw-bold text-secondary">{{ portfolio_stats.closed_positions }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top/Worst Performers -->
+    <div class="col-12 mb-4">
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-trophy me-2"></i>Top Performers
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if portfolio_stats.top_performers %}
+                            {% for symbol, pnl in portfolio_stats.top_performers %}
+                                {% if pnl > 0 %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">{{ symbol }}</span>
+                                    <span class="text-success">${{ "%.2f"|format(pnl) }}</span>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">No profitable positions yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-line-down me-2"></i>Worst Performers
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if portfolio_stats.worst_performers %}
+                            {% for symbol, pnl in portfolio_stats.worst_performers %}
+                                {% if pnl < 0 %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold">{{ symbol }}</span>
+                                    <span class="text-danger">${{ "%.2f"|format(pnl) }}</span>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted mb-0">No losing positions</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Positions -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Current Positions
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if positions %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Stock Quantity</th>
+                                <th>Stock Avg Cost</th>
+                                <th>Options Trades</th>
+                                <th>Total Cost</th>
+                                <th>Total Proceeds</th>
+                                <th>Net P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for symbol, position in positions.items() %}
+                            <tr>
+                                <td class="fw-bold">{{ position.symbol }}</td>
+                                <td>
+                                    {% if position.stock_trades %}
+                                        {{ portfolio_stats.stock_positions[symbol].quantity }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if position.stock_trades and portfolio_stats.stock_positions[symbol].quantity > 0 %}
+                                        ${{ "%.2f"|format(portfolio_stats.stock_positions[symbol].avg_cost) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if position.options_trades %}
+                                        <span class="badge bg-info">{{ position.options_trades|length }} trades</span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>${{ "%.2f"|format(position.total_cost) }}</td>
+                                <td>${{ "%.2f"|format(position.total_proceeds) }}</td>
+                                <td class="fw-bold {% if position.total_proceeds - position.total_cost >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                    ${{ "%.2f"|format(position.total_proceeds - position.total_cost) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-wallet fa-5x text-muted mb-3"></i>
+                    <h4 class="text-muted">No positions found</h4>
+                    <p class="text-muted">Start trading to see your portfolio positions!</p>
+                    <a href="{{ url_for('add_trade') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Add Your First Trade
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

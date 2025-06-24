@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Stock & Options Tracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Portfolio Summary -->
+    <div class="col-12 mb-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-line fa-2x mb-2"></i>
+                        <h5 class="card-title">Total Trades</h5>
+                        <h3 class="mb-0">{{ portfolio_stats.total_trades }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-dollar-sign fa-2x mb-2"></i>
+                        <h5 class="card-title">Total Invested</h5>
+                        <h3 class="mb-0">${{ "%.2f"|format(portfolio_stats.total_invested) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-dark">
+                    <div class="card-body text-center">
+                        <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                        <h5 class="card-title">Total Proceeds</h5>
+                        <h3 class="mb-0">${{ "%.2f"|format(portfolio_stats.total_proceeds) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card {% if portfolio_stats.realized_pnl >= 0 %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                        <h5 class="card-title">Realized P&L</h5>
+                        <h3 class="mb-0">${{ "%.2f"|format(portfolio_stats.realized_pnl) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="col-12 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-filter me-2"></i>Filter Trades
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-2">
+                        {{ filter_form.trade_type.label(class="form-label") }}
+                        {{ filter_form.trade_type(class="form-select") }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.action.label(class="form-label") }}
+                        {{ filter_form.action(class="form-select") }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.symbol.label(class="form-label") }}
+                        {{ filter_form.symbol(class="form-control", placeholder="e.g., AAPL") }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.date_from.label(class="form-label") }}
+                        {{ filter_form.date_from(class="form-control") }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.date_to.label(class="form-label") }}
+                        {{ filter_form.date_to(class="form-control") }}
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="btn-group w-100">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trades Table -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Recent Trades
+                </h5>
+                <a href="{{ url_for('add_trade') }}" class="btn btn-success">
+                    <i class="fas fa-plus me-1"></i>Add Trade
+                </a>
+            </div>
+            <div class="card-body">
+                {% if trades %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Action</th>
+                                <th>Quantity</th>
+                                <th>Price/Premium</th>
+                                <th class="d-none d-md-table-cell">Strike</th>
+                                <th class="d-none d-md-table-cell">Expiration</th>
+                                <th class="d-none d-lg-table-cell">Fees</th>
+                                <th>Total Cost</th>
+                                <th class="d-none d-lg-table-cell">P&L</th>
+                                <th class="d-none d-md-table-cell">Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trade in trades %}
+                            <tr>
+                                <td>{{ trade.date.strftime('%Y-%m-%d') }}</td>
+                                <td class="fw-bold">{{ trade.symbol }}</td>
+                                <td>
+                                    {% if trade.trade_type.value == 'stock' %}
+                                        <span class="badge bg-primary">Stock</span>
+                                    {% elif trade.trade_type.value == 'call' %}
+                                        <span class="badge bg-success">Call</span>
+                                    {% elif trade.trade_type.value == 'put' %}
+                                        <span class="badge bg-danger">Put</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if trade.action.value == 'buy_to_open' %}
+                                        <span class="badge bg-info">Buy to Open</span>
+                                    {% elif trade.action.value == 'buy_to_close' %}
+                                        <span class="badge bg-primary">Buy to Close</span>
+                                    {% elif trade.action.value == 'sell_to_open' %}
+                                        <span class="badge bg-warning text-dark">Sell to Open</span>
+                                    {% elif trade.action.value == 'sell_to_close' %}
+                                        <span class="badge bg-success">Sell to Close</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if trade.is_option and trade.action.value in ['sell_to_open', 'sell_to_close'] %}
+                                        {{ trade.quantity }}
+                                    {% else %}
+                                        {{ abs(trade.quantity) }}
+                                    {% endif %}
+                                </td>
+                                <td>${{ "%.2f"|format(trade.price) }}</td>
+                                <td class="d-none d-md-table-cell">
+                                    {% if trade.strike_price %}
+                                        ${{ "%.2f"|format(trade.strike_price) }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    {% if trade.expiration_date %}
+                                        {{ trade.expiration_date.strftime('%Y-%m-%d') }}
+                                        {% if trade.is_expired %}
+                                            <small class="text-danger">(Expired)</small>
+                                        {% endif %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td class="d-none d-lg-table-cell">
+                                    {% if trade.fees %}
+                                        ${{ "%.2f"|format(trade.fees) }}
+                                    {% else %}
+                                        $0.00
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold {% if trade.total_cost < 0 %}text-success{% elif trade.total_cost > 0 %}text-danger{% endif %}">
+                                    {% if trade.total_cost < 0 %}
+                                        +${{ "%.2f"|format(-trade.total_cost) }} (Credit)
+                                    {% else %}
+                                        -${{ "%.2f"|format(trade.total_cost) }} (Debit)
+                                    {% endif %}
+                                </td>
+                                <td class="d-none d-lg-table-cell">
+                                    {% if trade.is_closed and trade.realized_pnl != 0 %}
+                                        <span class="fw-bold {% if trade.realized_pnl > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {% if trade.realized_pnl > 0 %}+{% endif %}${{ "%.2f"|format(trade.realized_pnl) }}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="d-none d-md-table-cell">
+                                    {% if trade.is_closed %}
+                                        <span class="badge bg-secondary">Closed</span>
+                                        {% if trade.closed_date %}
+                                            <br><small class="text-muted">{{ trade.closed_date.strftime('%Y-%m-%d') }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="badge bg-success">Open</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('edit_trade', trade_id=trade.id) }}" class="btn btn-outline-primary">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="{{ url_for('delete_trade', trade_id=trade.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this trade?')">
+                                            <button type="submit" class="btn btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-5x text-muted mb-3"></i>
+                    <h4 class="text-muted">No trades found</h4>
+                    <p class="text-muted">Start by adding your first trade!</p>
+                    <a href="{{ url_for('add_trade') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-1"></i>Add Your First Trade
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
